@@ -15,3 +15,8 @@ desktop.ini
 
 # 光譜報告 PDF（檔案較大，不納入版控）
 *_Spectacles_Report.pdf
+
+# 工具產出（可由 XML 重新生成，不納入版控）
+*_PCBAFCT.csv
+SOLOS_SpectaclesReport_*.csv
+Lensometer.csv
