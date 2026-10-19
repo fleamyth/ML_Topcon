@@ -1,0 +1,36 @@
+﻿客戶章節,客戶測試項目,客戶文件原文名稱,客戶定義卡控規格(D10、D11、D13、D14),客戶定義卡控規格(D15),儀器手冊項目名稱(SOLOS rev18),數據檔項目名稱(JOIA XML),對應類型,備註
+8.2.1,屈光度(球面度數),Refractive Power(Clause 4.9.1),0.00 D(±0.13 D),,球鏡度 S(Sphere),"nsLM:Sphere(unit=""D"")",直接對應,
+8.2.2,散光(柱面度數),Astigmatic Power(Clause 4.9.2),≦ 0.13 D,,柱鏡度 C(Cylinder),"nsLM:Cylinder(unit=""D"")",直接對應,
+8.2.3,稜鏡不平衡 — 水平,Prismatic Imbalance(Clause 4.9.3),水平 ≦ 0.50 Δ,,稜鏡度 P(Prism)／稜鏡底(PrismBase),"nsLM:PrismX(base=""out"")",需計算,左右眼相減 (無數直代表量測值為0)
+8.2.3,稜鏡不平衡 — 垂直,Prismatic Imbalance(Clause 4.9.3),垂直 ≦ 0.25 Δ,,稜鏡度 P(Prism)／稜鏡底(PrismBase),"nsLM:PrismY(base=""up"")",需計算,左右眼相減 (無數直代表量測值為0)
+8.3.1 一般透光率需求(General Transmittance Requirements),,,,,,,,
+8.3.1.1,鏡片染色均勻度,Lens Tint Uniformity(Clause 4.11.4),相對變化 ≦ 10%,,透射率表(逐波長 315-800 nm),無對應(每眼僅一組光譜，無 T01／T02 兩點資料),無對應,客人信件同意不測
+8.3.1.2,鏡片染色不平衡,Lens Tint Imbalance(Clause 4.12),相對差異 ≦ 15%,,透射率表 - 可見光 380-780 nm,nsLM:VisibleTransmittance(R／L),需計算,左右眼相減
+8.3.2 配置別透光率需求(Configuration-specific Transmittance Requirements),,,,,,,,
+8.3.2.1,可見光透光率 τv (Cosmetic Lens),Luminous Transmittance(τv),> 40%,8% - 40%,透射率表 - 可見光 380-780 nm,"nsLM:VisibleTransmittance(unit=""%"")",直接對應,
+8.3.2.1,紅色訊號透光率 τsig (Cosmetic Lens),Red Signal Transmittance(τsig),≧ 8%,,無對應(手冊無 τsig 輸出),TransmittanceData (逐波長 315-800 nm),需計算,需依加權計算，參照「紅黃綠權重表」
+8.3.2.1,黃色訊號透光率 τsig (Cosmetic Lens),Yellow Signal Transmittance(τsig),≧ 6%,,無對應(手冊無 τsig 輸出),TransmittanceData (逐波長 315-800 nm),需計算,需依加權計算，參照「紅黃綠權重表」
+8.3.2.1,綠色訊號透光率 τsig (Cosmetic Lens),Green Signal Transmittance(τsig),≧ 6%,,無對應(手冊無 τsig 輸出),TransmittanceData (逐波長 315-800 nm),需計算,需依加權計算，參照「紅黃綠權重表」
+8.3.2.1,UVB 平均透光率 (Cosmetic Lens),UVB Mean Transmittance(280-315 nm),≦ 0.125 · τv,,無對應(光譜儀範圍 315-800 nm),無對應(資料起點 315 nm),無對應,客人信件同意不測
+8.3.2.1,UVA 平均透光率 (Cosmetic Lens),UVA Mean Transmittance(315-380 nm),≦ 0.5 · τv,,透射率表 - UVA 315-380 nm,"nsLM:UVTransmittance(unit=""%"")",直接對應,
+
+備註
+1. 本表為「一項目一列、一列一數值」之逐項明細版；大項(8.2.3 稜鏡不平衡、8.3.2 配置別透光率)已依「參數 × 配置」完全拆分。
+2. 對應類型定義 — 直接對應：儀器／數據檔直接輸出該數值；需計算：需由多筆資料換算(左右眼相減、逐波長加權)；無對應：儀器或數據檔無此資料。
+3. UVB(280-315 nm)— 客人決定改由原料端管控，不納入儀器量測(SOLOS 光譜儀範圍 315-800 nm，本即無法量測)。
+4. 紅／黃／綠訊號透光率(τsig)— SOLOS 透射率表僅直接顯示 UVA(315-380)、藍光(380-500)、可見光(380-780)三波段；τsig 需由全光譜資料依 ANSI Z80.3 §4.10 加權函數自行計算。已向客人索取頻譜計算權重對照表。
+5. 鏡片染色均勻度(8.3.1.1)— 數據檔每眼僅一組透射率光譜(315-800 nm，486 點)，無 T01／T02 兩點資料，無法計算鏡片內均勻度；待向 Topcon 確認點位量測能力。
+"6. 稜鏡不平衡(8.2.3)— 廠商標註僅列 nsLM:Prism；但客戶要求水平／垂直兩方向，對應欄位應為 nsLM:PrismX(base=""out"")與 nsLM:PrismY(base=""up"")。本檔四欄皆為空(值為 0)。"
+7. 廠商標註章節編號與客戶文件不一致 — 廠商標「8.1 中的屈光度／散光／稜鏡」，客戶文件 10019804-000 Rev A 中該三項位於 8.2(8.2.1／8.2.2／8.2.3)。需確認廠商參考的文件版本。
+8. τv 與鏡片染色不平衡共用同一欄位 — 廠商將 nsLM:VisibleTransmittance 標為「8.3 中的鏡片染色不平衡」，未標 τv；但該欄位即為 τv，同一欄位同時服務 8.3.1.2 與 8.3.2。需向廠商確認。
+9. 數據檔另有輸出但客戶未列為卡控：藍光透光率(nsLM:BlueTransmittance)、柱鏡軸(nsLM:Axis)、瞳距(nsLM:PD)、鏡片類型(nsLM:LensType，本檔為空)。
+10. 來源文件：客戶需求 10019804-000 Rev A(A.3 / 2026-09-24)；儀器規格 10019712-000 Rev B.2；SOLOS 焦度計使用說明書(中文)rev18；數據檔 标注S8A670M000AE_20261014_084520_TOPCON_SOLOS_00000.xml(JOIA 標準，含廠商中文標註)。
+
+配置代碼,鏡片配置,Recipe,說明
+D10,"Plano, Clear",POR（Plan of Record）,平光透明，基準配置
+D11,"Plano, Tinted",Recipe #1,平光染色
+D12,RX Capable,Recipe #2,可配度數
+D13,"Plano, Tinted",Recipe #3,平光染色
+D14,"Plano, Clear",Recipe #4,平光透明
+D15,"Plano, Sunlens",Recipe #5,平光太陽鏡片
+D16,RX Capable,Recipe #6,可配度數

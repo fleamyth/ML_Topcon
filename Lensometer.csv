@@ -1,0 +1,20 @@
+﻿TSRID,SerialNumber,PartNumber,Operation,TesterName,TestName,TestVariation,ErrorCode,Operator,StartDateTime,EndDateTime,ProductionTest,TestSuiteName,ErrorDescription,MeasurementName,Value,Units,LowerLimit,UpperLimit,PegaCode,TicketID
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Sphere,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_Sphere,0.00,D,-0.13,0.13,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Sphere,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_Sphere,0.00,D,-0.13,0.13,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Cylinder,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_Cylinder,-0.00,D,,0.13,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Cylinder,SOLOS,NG,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,OutOfSpec,L_Cylinder,-0.50,D,,0.13,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Prism Imbalance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Prism_Imbalance_H,0.000,Δ,,0.50,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Prism Imbalance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Prism_Imbalance_V,0.000,Δ,,0.25,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Lens Tint Uniformity,SOLOS,,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,NotApplicable,Tint_Uniformity,,%,,10,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Lens Tint Imbalance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Tint_Imbalance,0.00,%,,15,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Luminous Transmittance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_tau_v,89,%,40,,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Luminous Transmittance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_tau_v,89,%,40,,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_tau_sig_r,87.7,%,8,,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_tau_sig_r,89.0,%,8,,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_tau_sig_y,87.9,%,6,,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_tau_sig_y,88.7,%,6,,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_tau_sig_g,86.7,%,6,,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_tau_sig_g,87.5,%,6,,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,UVB Mean Transmittance,SOLOS,,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,NotApplicable,UVB_Mean,,%,,,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,UVA Mean Transmittance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_UVA_Mean,0,%,,44.50,,Debug
+20261009072121,S8A670R0007J,,SpectaclesReport,SOLOS-00000,UVA Mean Transmittance,SOLOS,0,,10/09/2026 07:21:21 AM,10/09/2026 07:21:21 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_UVA_Mean,0,%,,44.50,,Debug

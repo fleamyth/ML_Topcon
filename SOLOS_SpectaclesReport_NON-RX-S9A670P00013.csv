@@ -1,0 +1,16 @@
+﻿TSRID,SerialNumber,PartNumber,Operation,TesterName,TestName,TestVariation,ErrorCode,Operator,StartDateTime,EndDateTime,ProductionTest,TestSuiteName,ErrorDescription,MeasurementName,Value,Units,LowerLimit,UpperLimit,PegaCode,TicketID
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,Sphere,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Right_Sphere,0.00,D,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,Cylinder,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Right_Cylinder,-0.00,D,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,Axis,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Right_Axis,90,deg,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,UVTransmittance,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Right_UVTransmittance,0,%,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,BlueTransmittance,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Right_BlueTransmittance,49,%,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,VisibleTransmittance,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Right_VisibleTransmittance,69,%,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,Sphere,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Left_Sphere,-0.00,D,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,Cylinder,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Left_Cylinder,-0.00,D,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,Axis,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Left_Axis,28,deg,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,UVTransmittance,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Left_UVTransmittance,0,%,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,BlueTransmittance,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Left_BlueTransmittance,57,%,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,VisibleTransmittance,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Left_VisibleTransmittance,75,%,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,Distance,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,PD_Distance,63.50,mm,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,DistanceR,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,PD_DistanceR,32.50,mm,,,,Debug
+20261009072315,S9A670P00013,,SpectaclesReport,SOLOS-00000,DistanceL,SOLOS,0,,10/09/2026 07:23:15 AM,10/09/2026 07:23:15 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,PD_DistanceL,31.00,mm,,,,Debug
