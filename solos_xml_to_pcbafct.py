@@ -20,21 +20,22 @@ solos_xml_to_pcbafct.py
     8.2.2 散光   Cylinder          : x <= 0.13          D
     8.2.3 稜鏡不平衡 H (左右眼相減) : x <= 0.50          Δ
     8.2.3 稜鏡不平衡 V (左右眼相減) : x <= 0.25          Δ
-    8.3.1.1 鏡片染色均勻度          : 無對應（客人同意不測）→ N/A
+    8.3.1.1 鏡片染色均勻度          : 客人同意不測，不輸出
     8.3.1.2 鏡片染色不平衡          : x <= 15            %
     8.3.2.1 可見光透光率 τv         : x > 40             %
     8.3.2.1 訊號透光率 τsig 紅      : x >= 8             %
     8.3.2.1 訊號透光率 τsig 黃      : x >= 6             %
     8.3.2.1 訊號透光率 τsig 綠      : x >= 6             %
-    8.3.2.1 UVB 平均透光率          : 無對應（客人同意不測）→ N/A
+    8.3.2.1 UVB 平均透光率          : 客人同意不測，不輸出
     8.3.2.1 UVA 平均透光率          : x <= 0.5 · τv      %
 
 D15 (Plano, Sunlens) 之 τv 卡控為 8 % ~ 40 %（其餘同平光）。
 
 (註 1) 本廠僅測試 Non-RX（平光）眼鏡。工具只支援平光配置
        D10 / D11 / D13 / D14 / D15；RX Capable（D12 / D16）已移除。
-(註 2) XML 內沒有鏡片配置代碼。未指定時一律套用 D10~D14 平光卡控，
-       並在輸出訊息與 --with-note 備註欄中註明。太陽鏡片請用 --config D15。
+(註 2) XML 內沒有鏡片配置代碼。未指定 --config 時，依 XML 序號判斷：
+    SAA671F 開頭使用 D15 太陽鏡片卡控，其餘維持 D10~D14 平光卡控。
+    手動指定 --config 優先，配置會顯示於輸出訊息與 --with-note 備註欄。
 
 --------------------------------------------------------------------------
 τsig（紅 / 黃 / 綠 訊號透光率）計算
@@ -52,8 +53,8 @@ D15 (Plano, Sunlens) 之 τv 卡控為 8 % ~ 40 %（其餘同平光）。
 --------------------------------------------------------------------------
 用法
 --------------------------------------------------------------------------
-    # 單檔
-    python solos_xml_to_pcbafct.py RX-..._SOLOS_00000.xml
+    # 單檔（實際檔名格式：<序號>_<YYYYMMDD>_<HHMMSS>_TOPCON_SOLOS_00000.xml）
+    python solos_xml_to_pcbafct.py "SAA671D0000H_20261019_085916_TOPCON_SOLOS_00000.xml"
 
     # 批次（資料夾內所有 .xml）
     python solos_xml_to_pcbafct.py ./
@@ -62,7 +63,8 @@ D15 (Plano, Sunlens) 之 τv 卡控為 8 % ~ 40 %（其餘同平光）。
     python solos_xml_to_pcbafct.py in.xml -o out.csv --config D15
     python solos_xml_to_pcbafct.py ./xmls -o ./csvs
 
-預設輸出檔名：<SerialNumber>_PCBAFCT.csv（寫在輸入檔同一資料夾）。
+預設輸出檔名：Lensometer.csv（寫在輸入檔同一資料夾；
+批次多檔時，每個 XML 會放進各自的「序號」子資料夾，避免同名覆蓋）。
 輸出編碼 UTF-8 with BOM、換行 CRLF（與既有 CSV 一致）。
 """
 
@@ -155,6 +157,9 @@ CONFIG_NOTE = {
     'D14': 'D14 Plano, Clear (平光透明)',
     'D15': 'D15 Plano, Sunlens (平光太陽鏡片, τv 8-40%)',
 }
+
+# 輸出檔名（固定）。可用 -o 覆寫；批次多檔時會放在各自的「序號」子資料夾下。
+OUTPUT_NAME = 'Lensometer.csv'
 
 
 # ===========================================================================
@@ -395,9 +400,6 @@ def build_rows(xml, limits, config_note, with_note):
       limits['prism_h_high'], n='左右眼相減; ' + config_note)
     a('Prism Imbalance', 'Prism_Imbalance_V', fmt3(prism_v), 'Δ', '',
       limits['prism_v_high'], n='左右眼相減; ' + config_note)
-    # 8.3.1.1 鏡片染色均勻度（無對應）
-    a('Lens Tint Uniformity', 'Tint_Uniformity', '', '%', '', '10',
-      applicable=False, n='無對應; 客人信件同意不測')
     # 8.3.1.2 鏡片染色不平衡
     a('Lens Tint Imbalance', 'Tint_Imbalance',
       fmt2(tint_imbal) if tint_imbal is not None else '', '%', '',
@@ -428,9 +430,6 @@ def build_rows(xml, limits, config_note, with_note):
     a('Signal Transmittance', 'L_tau_sig_g',
       fmt1(sig_lg) if sig_lg is not None else '', '%',
       limits['sig_g_low'], '', n='ANSI Z80.3 §4.10 加權')
-    # 8.3.2.1 UVB（無對應）
-    a('UVB Mean Transmittance', 'UVB_Mean', '', '%', '', '',
-      applicable=False, n='無對應; 客人信件同意不測')
     # 8.3.2.1 UVA（上限 = 0.5·τv）
     a('UVA Mean Transmittance', 'R_UVA_Mean', uv_r, '%', '', uv_lim_r,
       n='上限=0.5·τv; ' + config_note)
@@ -524,7 +523,7 @@ def main(argv=None):
                     help='輸出檔（單檔）或輸出資料夾（多檔）')
     ap.add_argument('--config', default=None, choices=sorted(CONFIG_LIMITS.keys()),
                     help='鏡片配置（僅 Non-RX 平光）：D10/D11/D13/D14 或 D15 太陽鏡片；'
-                         '未指定 = D10~D14 平光卡控')
+                        '未指定時 XML 序號 SAA671F 開頭使用 D15，其餘用一般平光卡控')
     ap.add_argument('--suite', default='SOLOS_SpectaclesReport_1.3.0',
                     help='TestSuiteName 欄位值')
     ap.add_argument('--ticket', default='Debug', help='TicketID 欄位值')
@@ -534,9 +533,18 @@ def main(argv=None):
                     help='額外輸出未列卡控之欄位 (Axis / BlueTransmittance / PD)')
     args = ap.parse_args(argv)
 
-    limits = CONFIG_LIMITS.get(args.config, PLANO)
-    config_note = (CONFIG_NOTE[args.config] if args.config
-                   else 'Config 未提供; 採 D10-D14 平光卡控')
+    operator_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'OP.dat')
+    try:
+        with open(operator_path, encoding='utf-8-sig') as operator_file:
+            operator = operator_file.read().strip()
+        if not operator or len(operator.splitlines()) != 1:
+            raise ValueError('OP.dat must contain one non-empty operator ID')
+    except FileNotFoundError:
+        operator = ''
+    except (OSError, UnicodeError, ValueError) as exc:
+        print('[FAIL] Cannot read operator file %s: %s' % (operator_path, exc),
+              file=sys.stderr)
+        return 1
 
     files = collect_inputs(args.inputs)
     if not files:
@@ -547,7 +555,6 @@ def main(argv=None):
     out_is_dir = bool(args.output) and (multi or os.path.isdir(args.output)
                                         or args.output.endswith(('/', '\\')))
 
-    print('卡控配置：%s' % config_note)
     print('共 %d 個 XML 檔。' % len(files))
     print('-' * 72)
 
@@ -560,29 +567,38 @@ def main(argv=None):
             rc = 1
             continue
 
+        selected_config = args.config
+        if selected_config is None and xml['serial'].startswith('SAA671F'):
+            selected_config = 'D15'
+        limits = CONFIG_LIMITS.get(selected_config, PLANO)
+        config_note = (CONFIG_NOTE[selected_config] if selected_config
+                       else 'Config 未提供; 採 D10-D14 平光卡控')
+        print('SN=%s 卡控配置：%s' % (xml['serial'], config_note))
+
         rows = build_rows(xml, limits, config_note, args.with_note)
         if args.include_extra:
             rows.extend(build_extra_rows(xml, args.with_note))
         for row in rows:
             row['TestSuiteName'] = args.suite
             row['TicketID'] = args.ticket
+            row['Operator'] = operator
 
-        if args.output:
-            if out_is_dir:
-                outdir = args.output
-                os.makedirs(outdir, exist_ok=True)
-                outpath = os.path.join(outdir, '%s_PCBAFCT.csv' % xml['serial'])
-            else:
-                outpath = args.output
+        # 決定輸出路徑：輸出檔名固定為 OUTPUT_NAME（Lensometer.csv）
+        if args.output and not out_is_dir:
+            outpath = args.output                       # 指定為檔案
         else:
-            outpath = os.path.join(os.path.dirname(os.path.abspath(f)),
-                                   '%s_PCBAFCT.csv' % xml['serial'])
+            base = args.output if args.output else os.path.dirname(os.path.abspath(f))
+            if multi:
+                # 多檔時放進「序號」子資料夾，避免同名覆蓋
+                outpath = os.path.join(base, xml['serial'] or 'output', OUTPUT_NAME)
+            else:
+                outpath = os.path.join(base, OUTPUT_NAME)
 
         os.makedirs(os.path.dirname(os.path.abspath(outpath)), exist_ok=True)
         write_csv(outpath, rows, args.with_note)
         ok, ng, na = summarize(rows)
         print('[OK] %s  ->  %s   (PASS=%d, FAIL=%d, N/A=%d)'
-              % (os.path.basename(f), os.path.basename(outpath), ok, ng, na))
+              % (os.path.basename(f), os.path.relpath(outpath), ok, ng, na))
 
     return rc
 

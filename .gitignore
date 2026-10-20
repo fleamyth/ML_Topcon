@@ -20,3 +20,10 @@ desktop.ini
 *_PCBAFCT.csv
 SOLOS_SpectaclesReport_*.csv
 Lensometer.csv
+
+# 測試流程產出
+logs/
+output/
+archive/
+*.log
+__pycache__/

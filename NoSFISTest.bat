@@ -1,0 +1,1 @@
+.\run_solos_test.bat --use-existing --no-sfis
