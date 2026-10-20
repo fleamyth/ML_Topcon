@@ -27,3 +27,9 @@ output/
 archive/
 *.log
 __pycache__/
+
+/OP.dat
+/Screen-diag.exe
+/UILogResult-auto.exe
+/HD log.zip
+/.sisyphus/
