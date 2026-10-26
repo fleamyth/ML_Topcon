@@ -391,7 +391,7 @@ class BatFlowTests(unittest.TestCase):
                                      for row in rows), 2)
 
     def test_only_hw_id_1f_uses_sunlens_limits(self):
-        hw_ids = ("1H", "1B", "1C", "1D", "1E", "1F", "1G")
+        hw_ids = ("1H", "1B", "1D", "1E", "1F")
         inputs = []
         for hw_id in hw_ids:
             sn = f"SAA67{hw_id}0001F"
@@ -414,6 +414,78 @@ class BatFlowTests(unittest.TestCase):
                 self.assertEqual(sum((row["LowerLimit"], row["UpperLimit"]) == limits
                                      for row in rows), 2)
 
+    def test_rejected_hw_ids_stop_before_sfis_without_csv(self):
+        for hw_id in ("1C", "1G"):
+            with self.subTest(hw_id=hw_id):
+                sn = f"SAA67{hw_id}0001M"
+                xml, pdf = self.write_pair(sn=sn)
+                stale_csv = self.root / f"output/{sn}/Lensometer.csv"
+                stale_csv.parent.mkdir(parents=True, exist_ok=True)
+                stale_csv.write_text("stale CSV", encoding="utf-8")
+                result = self.run_bat("--once", "--use-existing", "--dry-run")
+                self.assertEqual(result.returncode, 72, result.stdout + result.stderr)
+                self.assertIn(f"unsupported HW ID {hw_id}", result.stdout)
+                self.assertNotIn("GET http", result.stdout)
+                self.assertNotIn("POST http", result.stdout)
+                self.assertEqual(stale_csv.read_text(encoding="utf-8"), "stale CSV")
+                self.assertFalse(xml.exists())
+                self.assertFalse(pdf.exists())
+                self.assertTrue(any((self.root / "archive").glob(f"*/{xml.name}")))
+                self.assertFalse(any((self.root / "archive").glob("*/Lensometer.csv")))
+
+    def test_converter_rejects_hw_id_from_xml_even_with_config_override(self):
+        for hw_id in ("1C", "1G"):
+            for config in ([], ["--config", "D15"]):
+                with self.subTest(hw_id=hw_id, config=config):
+                    xml, _ = self.write_pair(sn=f"SAA67{hw_id}0001M")
+                    xml = xml.replace(self.root / "allowed_filename.xml")
+                    result = subprocess.run(
+                        ["python", "solos_xml_to_pcbafct.py", str(xml),
+                         "-o", "rejected.csv", *config],
+                        cwd=self.root, capture_output=True, encoding="utf-8",
+                        errors="replace", timeout=15,
+                    )
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertIn(f"unsupported HW ID {hw_id}", result.stderr)
+                    self.assertFalse((self.root / "rejected.csv").exists())
+
+    def test_mixed_batch_rejects_blocked_hw_ids_but_converts_allowed_serial(self):
+        inputs = [
+            str(self.write_pair(sn=f"SAA67{hw_id}0001M")[0])
+            for hw_id in ("1C", "1D", "1G")
+        ]
+        result = subprocess.run(
+            ["python", "solos_xml_to_pcbafct.py", *inputs, "-o", "batch"],
+            cwd=self.root, capture_output=True, encoding="utf-8",
+            errors="replace", timeout=15,
+        )
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("unsupported HW ID 1C", result.stderr)
+        self.assertIn("unsupported HW ID 1G", result.stderr)
+        self.assertEqual(result.stdout.count("PASS=17, FAIL=0, N/A=0"), 1)
+        for hw_id in ("1C", "1D", "1G"):
+            self.assertEqual(
+                (self.root / f"batch/SAA67{hw_id}0001M/Lensometer.csv").exists(),
+                hw_id == "1D",
+            )
+
+    def test_continuous_mode_returns_to_wait_after_rejected_hw_id(self):
+        self.write_pair(sn="SAA671C0001M")
+        output = self.run_until_waiting_again("--use-existing", "--no-sfis")
+        self.assertIn("unsupported HW ID 1C", output)
+        self.assertIn("ARCHIVED=", output)
+        self.assertFalse((self.root / "output").exists())
+        log = next((self.root / "logs").glob("solos_test_*.log")).read_text(encoding="utf-8")
+        self.assertIn("cycle complete exit=72", log)
+
+    def test_hw_id_check_does_not_reject_serial_suffix(self):
+        for suffix in ("1C", "1G"):
+            with self.subTest(suffix=suffix):
+                self.write_pair(sn=f"SAA671D000{suffix}")
+                result = self.run_bat("--once", "--use-existing", "--no-sfis")
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertIn("PASS=17, FAIL=0, N/A=0", result.stdout)
+
     def test_explicit_config_overrides_automatic_sn_selection(self):
         xml, _ = self.write_pair(sn="SAA671F0001M", visible=20)
         result = subprocess.run(
@@ -427,7 +499,7 @@ class BatFlowTests(unittest.TestCase):
     def run_bat(self, *arguments):
         self.write_config()
         return subprocess.run(
-            ["cmd.exe", "/d", "/c", "run_solos_test.bat", "--no-screen", *arguments],
+            ["cmd.exe", "/d", "/c", r".\run_solos_test.bat", "--no-screen", *arguments],
             cwd=self.root, capture_output=True, encoding="utf-8", errors="replace",
             timeout=15,
         )
@@ -435,7 +507,7 @@ class BatFlowTests(unittest.TestCase):
     def run_until_waiting_again(self, *arguments, waiting_count=2):
         self.write_config()
         process = subprocess.Popen(
-            ["cmd.exe", "/d", "/c", "run_solos_test.bat", "--no-screen", *arguments],
+            ["cmd.exe", "/d", "/c", r".\run_solos_test.bat", "--no-screen", *arguments],
             cwd=self.root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             encoding="utf-8", errors="replace",
         )

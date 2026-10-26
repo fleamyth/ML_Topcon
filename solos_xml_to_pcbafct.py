@@ -36,6 +36,7 @@ D15 (Plano, Sunlens) 之 τv 卡控為 8 % ~ 40 %（其餘同平光）。
 (註 2) XML 內沒有鏡片配置代碼。未指定 --config 時，依 XML 序號判斷：
     SAA671F 開頭使用 D15 太陽鏡片卡控，其餘維持 D10~D14 平光卡控。
     手動指定 --config 優先，配置會顯示於輸出訊息與 --with-note 備註欄。
+    序號第 6–7 碼 HW ID 為 1C / 1G 時拒絕轉檔，--config 不可覆寫。
 
 --------------------------------------------------------------------------
 τsig（紅 / 黃 / 綠 訊號透光率）計算
@@ -231,6 +232,12 @@ def weighted_transmittance(spectrum, weights):
 # ===========================================================================
 # XML 解析
 # ===========================================================================
+def validate_serial_number(serial):
+    hw_id = serial[5:7]
+    if hw_id in ('1C', '1G'):
+        raise ValueError('SN=%s: unsupported HW ID %s' % (serial, hw_id))
+
+
 def parse_solos_xml(path):
     root = ET.parse(path).getroot()
 
@@ -242,6 +249,7 @@ def parse_solos_xml(path):
     time = child_text(common, 'Time')
     patient = find_child(common, 'Patient')
     serial = child_text(patient, 'ID')
+    validate_serial_number(serial or '')
 
     measure = find_child(root, 'Measure')
     lm = find_child(measure, 'LM')
@@ -518,7 +526,9 @@ def collect_inputs(paths):
 def main(argv=None):
     ap = argparse.ArgumentParser(
         description='SOLOS (JOIA nsLM) XML -> PCBAFCT.csv (21 欄)，卡控依「測試項目對照表」。')
-    ap.add_argument('inputs', nargs='+', help='XML 檔或包含 XML 的資料夾')
+    ap.add_argument('inputs', nargs='*', help='XML 檔或包含 XML 的資料夾')
+    ap.add_argument('--check-serial', metavar='SN',
+                    help='僅檢查序號 HW ID；1C / 1G 回傳 1，不轉檔')
     ap.add_argument('-o', '--output', default=None,
                     help='輸出檔（單檔）或輸出資料夾（多檔）')
     ap.add_argument('--config', default=None, choices=sorted(CONFIG_LIMITS.keys()),
@@ -532,6 +542,17 @@ def main(argv=None):
     ap.add_argument('--include-extra', action='store_true',
                     help='額外輸出未列卡控之欄位 (Axis / BlueTransmittance / PD)')
     args = ap.parse_args(argv)
+    if args.check_serial is not None:
+        if args.inputs:
+            ap.error('--check-serial cannot be combined with XML inputs')
+        try:
+            validate_serial_number(args.check_serial)
+        except ValueError as exc:
+            print('[FAIL] %s' % exc, file=sys.stderr)
+            return 1
+        return 0
+    if not args.inputs:
+        ap.error('XML inputs are required unless --check-serial is used')
 
     operator_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'OP.dat')
     try:

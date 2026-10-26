@@ -123,6 +123,11 @@ echo  Found pair for SN : %SN%
 echo  XML : %XML%
 echo  PDF : %PDF%
 echo ------------------------------------------------------------
+python "%ROOT%\solos_xml_to_pcbafct.py" --check-serial "%SN%" > "%CONV_TMP%" 2>&1
+set "SRC=%ERRORLEVEL%"
+type "%CONV_TMP%"
+type "%CONV_TMP%" >> "%LOG%"
+if not "%SRC%"=="0" goto SERIAL_REJECTED
 if "%NO_SFIS%"=="1" goto NO_SFIS_C
 set /a CR_TRY=0
 :ROUTE_RETRY
@@ -141,6 +146,12 @@ if %CR_TRY% LEQ %RETRY% (
 )
 goto ROUTE_FAIL
 
+:SERIAL_REJECTED
+echo ERROR: serial number HW ID check failed.
+>> "%LOG%" echo [%time%] serial check failed exit=%SRC% SN=%SN%
+set "CYCLE_RC=72"
+call :msg_box "SOLOS serial number rejected.<br><br>SN: %SN%<br>HW ID 1C / 1G is not supported.<br><br>Press [Enter] to continue." 0x882222 enter
+goto ARCHIVE_PAIR
 :ROUTE_REJECTED
 set "CYCLE_RC=80"
 call :msg_box "SFIS Error - Check Route Failure !!<br><br>SN: %SN%<br>Please check the DUT route status.<br><br>Press [Enter] to continue." 0x882222 enter

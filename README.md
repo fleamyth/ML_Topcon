@@ -334,7 +334,11 @@ TSRID,SerialNumber,PartNumber,Operation,TesterName,TestName,TestVariation,ErrorC
 
 > **重要**：XML **不含**獨立配置代碼。未加 `--config` 時，以 XML 內容 `Patient/ID` 的序號判斷，不看檔名前綴：
 > `SAA671F…` 為太陽鏡片，自動套用 **D15（可見光透光率 8–40%）**；`SAA671D…` 及其他序號維持一般平光卡控。
-> 已確認的 HW ID：**1F** 使用太陽鏡片；**1H／1B／1C／1D／1E／1G** 使用一般平光。
+> 已確認的 HW ID：**1F** 使用太陽鏡片；**1H／1B／1D／1E** 使用一般平光。
+> **1C／1G 禁止測試**：檢查 XML `Patient/ID` 序號第 **6–7 碼**（例如 `SAA671C…`／`SAA671G…`），
+> 不比對檔名或其他位置的相同字串。直接轉檔會報錯、回傳 1，且不產生該筆 CSV；`--config` 也不能略過。
+> 自動流程會在 SFIS `/C` 前攔截，顯示錯誤、不轉檔、不上傳 SFIS，並依原流程封存 XML／PDF（不包含既有 CSV）。
+> `--once` 回傳 72；持續模式記錄錯誤後等待下一筆。可用 `python solos_xml_to_pcbafct.py --check-serial <SN>` 單獨檢查。
 > 例如 `SAA671D0001F` 的 HW ID 是 1D，尾碼 F 不會使它改用太陽鏡片標準。
 > 每份 XML 分別選擇配置，因此同批可混合 D／F；實際序號與配置會顯示於輸出訊息，`--with-note` 會附上配置備註。
 > 手動指定 `--config` 時優先採用指定值，並套用到該次命令的所有輸入檔案。
@@ -750,6 +754,7 @@ run_solos_test.bat --once --no-sfis --use-existing --no-screen
 | 80 / 81 / 83 | `/C` 路線被拒 / HTTP 失敗 / 用法錯誤 |
 | 70 | 轉檔失敗 |
 | 71 | 封存失敗（檢查日誌；已複製的資料不會因來源移除失敗而刪除） |
+| 72 | 序號 HW ID 檢查失敗（1C／1G 禁止測試；不轉檔、不呼叫 SFIS） |
 | 61 / 63 | `/UP` HTTP 失敗 / 用法錯誤 |
 
 ### D.7 前置條件
