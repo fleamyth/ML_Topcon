@@ -34,7 +34,7 @@ D15 (Plano, Sunlens) 之 τv 卡控為 8 % ~ 40 %（其餘同平光）。
 (註 1) 本廠僅測試 Non-RX（平光）眼鏡。工具只支援平光配置
        D10 / D11 / D13 / D14 / D15；RX Capable（D12 / D16）已移除。
 (註 2) XML 內沒有鏡片配置代碼。未指定 --config 時，依 XML 序號判斷：
-    SAA671F 開頭使用 D15 太陽鏡片卡控，其餘維持 D10~D14 平光卡控。
+    第 6–7 碼 HW ID 為 1F 時使用 D15 太陽鏡片卡控，其餘維持 D10~D14 平光卡控。
     手動指定 --config 優先，配置會顯示於輸出訊息與 --with-note 備註欄。
     序號第 6–7 碼 HW ID 為 1C / 1G 時拒絕轉檔，--config 不可覆寫。
 
@@ -533,7 +533,7 @@ def main(argv=None):
                     help='輸出檔（單檔）或輸出資料夾（多檔）')
     ap.add_argument('--config', default=None, choices=sorted(CONFIG_LIMITS.keys()),
                     help='鏡片配置（僅 Non-RX 平光）：D10/D11/D13/D14 或 D15 太陽鏡片；'
-                        '未指定時 XML 序號 SAA671F 開頭使用 D15，其餘用一般平光卡控')
+                        '未指定時 XML 序號第 6–7 碼 HW ID 為 1F 使用 D15，其餘用一般平光卡控')
     ap.add_argument('--suite', default='SOLOS_SpectaclesReport_1.3.0',
                     help='TestSuiteName 欄位值')
     ap.add_argument('--ticket', default='Debug', help='TicketID 欄位值')
@@ -589,7 +589,7 @@ def main(argv=None):
             continue
 
         selected_config = args.config
-        if selected_config is None and xml['serial'].startswith('SAA671F'):
+        if selected_config is None and xml['serial'][5:7] == '1F':
             selected_config = 'D15'
         limits = CONFIG_LIMITS.get(selected_config, PLANO)
         config_note = (CONFIG_NOTE[selected_config] if selected_config

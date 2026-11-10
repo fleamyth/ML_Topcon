@@ -391,10 +391,11 @@ class BatFlowTests(unittest.TestCase):
                                      for row in rows), 2)
 
     def test_only_hw_id_1f_uses_sunlens_limits(self):
-        hw_ids = ("1H", "1B", "1D", "1E", "1F")
+        cases = [(prefix, hw_id) for prefix in ("SAA67", "SBA67")
+                 for hw_id in ("1H", "1B", "1D", "1E", "1F")]
         inputs = []
-        for hw_id in hw_ids:
-            sn = f"SAA67{hw_id}0001F"
+        for prefix, hw_id in cases:
+            sn = f"{prefix}{hw_id}0001F"
             xml = self.write_pair(sn=sn, visible=20 if hw_id == "1F" else 89)[0]
             inputs.append(str(xml))
         result = subprocess.run(
@@ -402,10 +403,10 @@ class BatFlowTests(unittest.TestCase):
             cwd=self.root, capture_output=True, encoding="utf-8", errors="replace", timeout=15,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual(result.stdout.count("PASS=17, FAIL=0, N/A=0"), len(hw_ids))
-        for hw_id in hw_ids:
-            with self.subTest(hw_id=hw_id):
-                sn = f"SAA67{hw_id}0001F"
+        self.assertEqual(result.stdout.count("PASS=17, FAIL=0, N/A=0"), len(cases))
+        for prefix, hw_id in cases:
+            with self.subTest(prefix=prefix, hw_id=hw_id):
+                sn = f"{prefix}{hw_id}0001F"
                 with (self.root / f"batch/{sn}/Lensometer.csv").open(
                     encoding="utf-8-sig", newline="",
                 ) as handle:

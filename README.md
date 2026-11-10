@@ -124,7 +124,7 @@ SN=SAA671D0000H 卡控配置：Config 未提供; 採 D10-D14 平光卡控
 |---|---|---|---|
 | `inputs` | 位置參數（1+） | 要處理的 XML 檔，或包含 XML 的資料夾；可一次多個 | 必填 |
 | `-o`, `--output` | 字串 | 輸出檔（單檔）或輸出資料夾（多檔） | `Lensometer.csv`（與輸入同資料夾） |
-| `--config` | `D10`/`D11`/`D13`/`D14`/`D15` | 手動指定鏡片配置，優先於 SN 自動判斷（僅 Non-RX 平光） | XML 序號 `SAA671F` 開頭用 D15，其餘用 D10–D14 平光卡控 |
+| `--config` | `D10`/`D11`/`D13`/`D14`/`D15` | 手動指定鏡片配置，優先於 SN 自動判斷（僅 Non-RX 平光） | XML 序號第 6–7 碼 HW ID 為 `1F` 用 D15，其餘用 D10–D14 平光卡控；`1C`／`1G` 拒絕轉檔 |
 | `--suite` | 字串 | `TestSuiteName` 欄位值 | `SOLOS_SpectaclesReport_1.3.0` |
 | `--ticket` | 字串 | `TicketID` 欄位值 | `Debug` |
 | `--with-note` | 旗標 | 額外輸出第 22 欄「備註」（說明卡控來源、計算方式） | 關閉（維持 21 欄） |
@@ -333,7 +333,7 @@ TSRID,SerialNumber,PartNumber,Operation,TesterName,TestName,TestVariation,ErrorC
 | D16 | RX Capable | Recipe #6 | 可配度數 — **本廠不測 / 工具不支援** |
 
 > **重要**：XML **不含**獨立配置代碼。未加 `--config` 時，以 XML 內容 `Patient/ID` 的序號判斷，不看檔名前綴：
-> `SAA671F…` 為太陽鏡片，自動套用 **D15（可見光透光率 8–40%）**；`SAA671D…` 及其他序號維持一般平光卡控。
+> 只依序號第 **6–7 碼 HW ID** 判斷，不受前綴影響：`1F`（例如 `SAA671F…`／`SBA671F…`）自動套用 **D15（可見光透光率 8–40%）**；其餘允許的序號維持一般平光卡控。
 > 已確認的 HW ID：**1F** 使用太陽鏡片；**1H／1B／1D／1E** 使用一般平光。
 > **1C／1G 禁止測試**：檢查 XML `Patient/ID` 序號第 **6–7 碼**（例如 `SAA671C…`／`SAA671G…`），
 > 不比對檔名或其他位置的相同字串。直接轉檔會報錯、回傳 1，且不產生該筆 CSV；`--config` 也不能略過。
@@ -523,7 +523,7 @@ UVA 量測值 = 0  → 0 <= 44.50  PASS
 
 ## 15. 已知限制與待確認事項
 
-1. **XML 無獨立鏡片配置代碼** → 目前依已確認規則：XML 序號 `SAA671F` 開頭用 D15，其餘維持一般平光；`--config` 可手動覆寫。其他新 SN 類型需先確認規格，不能假設自動支援。
+1. **XML 無獨立鏡片配置代碼** → 依 XML 序號第 6–7 碼 HW ID 判斷：`1F` 用 D15，其餘維持一般平光；`--config` 可手動覆寫，但 `1C`／`1G` 一律拒絕轉檔。其他新 HW ID 的規格需另行確認。
 2. **RX Capable（D12 / D16）不支援** → 本廠僅測 Non-RX，工具已移除 D12/D16；如未來要測 RX 需提供處方公差。
 3. **鏡片染色均勻度（8.3.1.1）** → 每眼僅一組光譜，無 T01/T02，無法計算；客人同意不測，已移除輸出。
 4. **UVB 平均透光率** → 光譜自 315 nm 起，無法量測；客人同意不測，已移除輸出。
@@ -648,7 +648,7 @@ UVA 量測值 = 0  → 0 <= 44.50  PASS
    等待期間以 screen-diag 顯示藍底 `waiting for (xml) files...`。
 2. **在站檢查**：`python RESTSFIS-diag\RESTSFIS-diag.py /C -sn <SN>`（exit 0 = PASS 才續行）。
 3. **轉檔**：`python solos_xml_to_pcbafct.py "<XML>" -o output\<SN>\Lensometer.csv`。
-  轉檔程式依 XML 內 SN 自動選擇標準：`SAA671F…` 使用 D15 太陽鏡片，其餘維持一般平光；BAT 不需額外參數。
+  轉檔程式依 XML 內 SN 第 6–7 碼 HW ID 自動選擇標準：`1F` 使用 D15 太陽鏡片，其餘維持一般平光，`1C`／`1G` 拒絕轉檔；BAT 不需額外參數。
 4. **上傳過站**：`python RESTSFIS-diag\RESTSFIS-diag.py /UP -log <Lensometer.csv>`。
 5. **封存**：不論上傳成功、SFIS 在站／上傳失敗或轉檔失敗，都將本組 XML、PDF 存入
   `archive\<XML檔名主體>_<唯一代碼>\`。全部複製成功後才移除監看目錄中的 XML/PDF，
