@@ -1,0 +1,18 @@
+﻿TSRID,SerialNumber,PartNumber,Operation,TesterName,TestName,TestVariation,ErrorCode,Operator,StartDateTime,EndDateTime,ProductionTest,TestSuiteName,ErrorDescription,MeasurementName,Value,Units,LowerLimit,UpperLimit,PegaCode,TicketID
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Sphere,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_Sphere,-0.00,D,-0.13,0.13,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Sphere,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_Sphere,-0.00,D,-0.13,0.13,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Cylinder,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_Cylinder,-0.00,D,,0.13,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Cylinder,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_Cylinder,-0.00,D,,0.13,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Prism Imbalance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Prism_Imbalance_H,0.000,Δ,,0.50,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Prism Imbalance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Prism_Imbalance_V,0.000,Δ,,0.25,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Lens Tint Imbalance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,Tint_Imbalance,2.00,%,,15,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Luminous Transmittance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_tau_v,12,%,8,40,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Luminous Transmittance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_tau_v,10,%,8,40,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_tau_sig_r,21.7,%,8,,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_tau_sig_r,19.8,%,8,,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_tau_sig_y,13.3,%,6,,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_tau_sig_y,11.2,%,6,,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_tau_sig_g,11.2,%,6,,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,Signal Transmittance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_tau_sig_g,8.6,%,6,,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,UVA Mean Transmittance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,R_UVA_Mean,0,%,,6.00,,Debug
+20261109093305,SBA671F0006U,,SpectaclesReport,SOLOS-00000,UVA Mean Transmittance,SOLOS,0,,11/09/2026 09:33:05 AM,11/09/2026 09:33:05 AM,0,SOLOS_SpectaclesReport_1.3.0,Success,L_UVA_Mean,0,%,,5.00,,Debug

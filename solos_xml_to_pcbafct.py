@@ -46,8 +46,8 @@ D15 (Plano, Sunlens) 之 τv 卡控為 8 % ~ 40 %（其餘同平光）。
     τsig = Σ τ(λ)·W(λ) / Σ W(λ)      λ = 380..780 nm（步進 10 nm）
 
     紅色訊號 → 權重 = SA(λ)·τ_red(λ)·ȳ(λ)   （權重表 H 欄）
-    黃色訊號 → 權重 = SA(λ)·τ_yellow(λ)·x̄(λ)（權重表 F 欄）
-    綠色訊號 → 權重 = SA(λ)·τ_green(λ)·x̄(λ) （權重表 G 欄）
+    黃色訊號 → 權重 = SA(λ)·τ_yellow(λ)·ȳ(λ)（權重表 I 欄）
+    綠色訊號 → 權重 = SA(λ)·τ_green(λ)·ȳ(λ) （權重表 J 欄）
 
 τ(λ) 直接取 XML <TransmittanceData> 於該波長的量測值。
 
@@ -71,6 +71,7 @@ D15 (Plano, Sunlens) 之 τv 卡控為 8 % ~ 40 %（其餘同平光）。
 
 import argparse
 import csv
+import math
 import os
 import sys
 import glob
@@ -80,10 +81,10 @@ from datetime import datetime
 # ===========================================================================
 # 內嵌權重表（來源：Barney3_測試項目對照表_逐項明細.xlsx / 工作表「紅黃綠權重表」）
 #   WAVELENGTHS : 波長 (nm)，380~780，步進 10
-#   W_F : SA(λ)·τsig(λ)·x̄(λ)  黃色訊號
-#   W_G : SA(λ)·τsig(λ)·x̄(λ)  綠色訊號
+#   W_F / W_G : 黃色 / 綠色 x̄ 權重（備查，不用於光度透過率）
 #   W_H : SA(λ)·τsig(λ)·ȳ(λ)  紅色訊號
-#   W_I / W_J / W_K / W_L : 權重表其餘欄位（備查用，目前未參與判定）
+#   W_I / W_J : 黃色 / 綠色 ȳ 權重（光度透過率）
+#   W_K / W_L : 黃色 / 綠色 z̄ 權重（備查）
 # ===========================================================================
 WAVELENGTHS = [380, 390, 400, 410, 420, 430, 440, 450, 460, 470, 480, 490, 500,
                510, 520, 530, 540, 550, 560, 570, 580, 590, 600, 610, 620, 630,
@@ -136,7 +137,7 @@ HEADER = [
 # 卡控一律以「字串」保存，數值呈現即與「測試項目對照表」一致（整數不補小數）。
 PLANO = dict(sphere_low='-0.13', sphere_high='0.13', cyl_high='0.13',
              prism_h_high='0.50', prism_v_high='0.25', tint_imbal_high='15',
-             tv_low='40', tv_high='', sig_r_low='8', sig_y_low='6',
+             tv_low='40', tv_high='', tv_low_exclusive=True, sig_r_low='8', sig_y_low='6',
              sig_g_low='6', uv_factor=0.5)
 
 # 本廠僅測試 Non-RX（平光）眼鏡，故只保留平光相關配置：
@@ -148,7 +149,7 @@ CONFIG_LIMITS = {
     'D11': dict(PLANO),                                   # Plano, Tinted
     'D13': dict(PLANO),                                   # Plano, Tinted
     'D14': dict(PLANO),                                   # Plano, Clear
-    'D15': dict(PLANO, tv_low='8', tv_high='40'),         # Plano, Sunlens: 8%~40%
+    'D15': dict(PLANO, tv_low='8', tv_high='40', tv_low_exclusive=False),
 }
 
 CONFIG_NOTE = {
@@ -291,24 +292,30 @@ def parse_solos_xml(path):
 # 建立輸出資料列
 # ===========================================================================
 def make_row(base, test_name, measurement, value, units, low, high,
-             applicable=True, judge_abs=False, note=''):
+             applicable=True, judge_abs=False, note='', judge_value=None,
+             judge_high=None, low_exclusive=False):
     err_code, err_desc = '0', 'Success'
     if not applicable:
         value = ''
         err_code, err_desc = '', 'NotApplicable'
     elif value not in (None, ''):
-        v = to_float(value)
+        v = to_float(str(judge_value)) if judge_value is not None else to_float(value)
         ok = True
         if v is not None:
             lo = to_float(low)
-            hi = to_float(high)
+            hi = to_float(str(judge_high)) if judge_high is not None else to_float(high)
             if judge_abs:
                 # 卡控針對「大小」（如散光 |Cylinder| <= 0.13）
                 v = abs(v)
                 lo = None
-            if lo is not None and v < lo:
-                ok = False
-            if hi is not None and v > hi:
+            if lo is not None:
+                at_lower = v == lo or (judge_value is not None and math.isclose(
+                    v, lo, rel_tol=0.0, abs_tol=1e-12))
+                if (v < lo and not at_lower) or (low_exclusive and at_lower):
+                    ok = False
+            at_upper = hi is not None and (judge_value is not None or judge_high is not None) and math.isclose(
+                v, hi, rel_tol=0.0, abs_tol=1e-12)
+            if hi is not None and v > hi and not at_upper:
                 ok = False
         if not ok:
             err_code, err_desc = 'NG', 'OutOfSpec'
@@ -372,16 +379,16 @@ def build_rows(xml, limits, config_note, with_note):
     # ---- 需計算值 ----
     prism_h = abs(fnum(r.get('PrismX')) - fnum(l.get('PrismX')))
     prism_v = abs(fnum(r.get('PrismY')) - fnum(l.get('PrismY')))
-    if tv_r is not None and tv_l is not None and (tv_r + tv_l) != 0:
-        tint_imbal = abs(tv_r - tv_l) / ((tv_r + tv_l) / 2.0) * 100.0
+    if tv_r is not None and tv_l is not None:
+        tint_imbal = abs(tv_r - tv_l)
     else:
         tint_imbal = None
     sig_rr = weighted_transmittance(r['spectrum'], W_H)
     sig_lr = weighted_transmittance(l['spectrum'], W_H)
-    sig_ry = weighted_transmittance(r['spectrum'], W_F)
-    sig_ly = weighted_transmittance(l['spectrum'], W_F)
-    sig_rg = weighted_transmittance(r['spectrum'], W_G)
-    sig_lg = weighted_transmittance(l['spectrum'], W_G)
+    sig_ry = weighted_transmittance(r['spectrum'], W_I)
+    sig_ly = weighted_transmittance(l['spectrum'], W_I)
+    sig_rg = weighted_transmittance(r['spectrum'], W_J)
+    sig_lg = weighted_transmittance(l['spectrum'], W_J)
 
     uv_lim_r = fmt2(limits['uv_factor'] * tv_r) if tv_r is not None else ''
     uv_lim_l = fmt2(limits['uv_factor'] * tv_l) if tv_l is not None else ''
@@ -405,43 +412,45 @@ def build_rows(xml, limits, config_note, with_note):
       limits['cyl_high'], judge_abs=True, n=config_note)
     # 8.2.3 稜鏡不平衡
     a('Prism Imbalance', 'Prism_Imbalance_H', fmt3(prism_h), 'Δ', '',
-      limits['prism_h_high'], n='左右眼相減; ' + config_note)
+            limits['prism_h_high'], judge_value=prism_h, n='左右眼相減; ' + config_note)
     a('Prism Imbalance', 'Prism_Imbalance_V', fmt3(prism_v), 'Δ', '',
-      limits['prism_v_high'], n='左右眼相減; ' + config_note)
+            limits['prism_v_high'], judge_value=prism_v, n='左右眼相減; ' + config_note)
     # 8.3.1.2 鏡片染色不平衡
     a('Lens Tint Imbalance', 'Tint_Imbalance',
       fmt2(tint_imbal) if tint_imbal is not None else '', '%', '',
-      limits['tint_imbal_high'], n='|τv_R-τv_L|/平均; ' + config_note)
+            limits['tint_imbal_high'], judge_value=tint_imbal, n='|τv_R-τv_L|; ' + config_note)
     # 8.3.2.1 可見光透光率 τv
     a('Luminous Transmittance', 'R_tau_v',
       r.get('VisibleTransmittance'), '%', limits['tv_low'], limits['tv_high'],
-      n=config_note)
+    low_exclusive=limits['tv_low_exclusive'], n=config_note)
     a('Luminous Transmittance', 'L_tau_v',
       l.get('VisibleTransmittance'), '%', limits['tv_low'], limits['tv_high'],
-      n=config_note)
+    low_exclusive=limits['tv_low_exclusive'], n=config_note)
     # 8.3.2.1 訊號透光率 τsig
     a('Signal Transmittance', 'R_tau_sig_r',
       fmt1(sig_rr) if sig_rr is not None else '', '%',
-      limits['sig_r_low'], '', n='ANSI Z80.3 §4.10 加權')
+    limits['sig_r_low'], '', judge_value=sig_rr, n='ANSI Z80.3 §4.10 加權')
     a('Signal Transmittance', 'L_tau_sig_r',
       fmt1(sig_lr) if sig_lr is not None else '', '%',
-      limits['sig_r_low'], '', n='ANSI Z80.3 §4.10 加權')
+    limits['sig_r_low'], '', judge_value=sig_lr, n='ANSI Z80.3 §4.10 加權')
     a('Signal Transmittance', 'R_tau_sig_y',
       fmt1(sig_ry) if sig_ry is not None else '', '%',
-      limits['sig_y_low'], '', n='ANSI Z80.3 §4.10 加權')
+    limits['sig_y_low'], '', judge_value=sig_ry, n='ANSI Z80.3 §4.10 加權')
     a('Signal Transmittance', 'L_tau_sig_y',
       fmt1(sig_ly) if sig_ly is not None else '', '%',
-      limits['sig_y_low'], '', n='ANSI Z80.3 §4.10 加權')
+    limits['sig_y_low'], '', judge_value=sig_ly, n='ANSI Z80.3 §4.10 加權')
     a('Signal Transmittance', 'R_tau_sig_g',
       fmt1(sig_rg) if sig_rg is not None else '', '%',
-      limits['sig_g_low'], '', n='ANSI Z80.3 §4.10 加權')
+    limits['sig_g_low'], '', judge_value=sig_rg, n='ANSI Z80.3 §4.10 加權')
     a('Signal Transmittance', 'L_tau_sig_g',
       fmt1(sig_lg) if sig_lg is not None else '', '%',
-      limits['sig_g_low'], '', n='ANSI Z80.3 §4.10 加權')
+    limits['sig_g_low'], '', judge_value=sig_lg, n='ANSI Z80.3 §4.10 加權')
     # 8.3.2.1 UVA（上限 = 0.5·τv）
     a('UVA Mean Transmittance', 'R_UVA_Mean', uv_r, '%', '', uv_lim_r,
+            judge_high=limits['uv_factor'] * tv_r if tv_r is not None else None,
       n='上限=0.5·τv; ' + config_note)
     a('UVA Mean Transmittance', 'L_UVA_Mean', uv_l, '%', '', uv_lim_l,
+            judge_high=limits['uv_factor'] * tv_l if tv_l is not None else None,
       n='上限=0.5·τv; ' + config_note)
 
     return rows

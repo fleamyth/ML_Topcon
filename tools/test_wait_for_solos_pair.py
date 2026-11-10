@@ -17,6 +17,13 @@ assert SPEC is not None and SPEC.loader is not None
 wfsp = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(wfsp)
 
+CONVERTER_SPEC = importlib.util.spec_from_file_location(
+    "solos_xml_to_pcbafct", MODULE_PATH.parents[1] / "solos_xml_to_pcbafct.py",
+)
+assert CONVERTER_SPEC is not None and CONVERTER_SPEC.loader is not None
+converter = importlib.util.module_from_spec(CONVERTER_SPEC)
+CONVERTER_SPEC.loader.exec_module(converter)
+
 
 XML_TEMPLATE = (
     '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -53,6 +60,67 @@ def measurement_xml(sn, fail=False, visible=89):
             f"<TransmittanceData>{spectrum}</TransmittanceData></{eye}>"
         )
     return f"<Ophthalmology>{common}<Measure><LM>{eyes}</LM></Measure></Ophthalmology>"
+
+
+class ConverterJudgementTests(unittest.TestCase):
+    def setUp(self):
+        tree = ET.ElementTree(ET.fromstring(measurement_xml("SBA671F0006U")))
+        with patch.object(converter.ET, "parse", return_value=tree):
+            self.xml = converter.parse_solos_xml("in-memory.xml")
+
+    def rows(self, config="D15"):
+        return {row["MeasurementName"]: row for row in converter.build_rows(
+            self.xml, converter.CONFIG_LIMITS[config], config, False,
+        )}
+
+    def test_visible_transmittance_boundaries(self):
+        for config in ("D10", "D11", "D13", "D14", "D15"):
+            cases = [("39.999", "NG"), ("40", "NG"), ("40.001", "0")]
+            if config == "D15":
+                cases = [("7.999", "NG"), ("8", "0"), ("40", "0"), ("40.001", "NG")]
+            for value, expected in cases:
+                with self.subTest(config=config, value=value):
+                    for eye in ("R", "L"):
+                        self.xml["eyes"][eye]["VisibleTransmittance"] = value
+                    rows = self.rows(config)
+                    for eye in ("R", "L"):
+                        self.assertEqual(rows[f"{eye}_tau_v"]["ErrorCode"], expected)
+
+    def test_unrounded_calculated_values_determine_result(self):
+        right, left = self.xml["eyes"]["R"], self.xml["eyes"]["L"]
+        right.update(VisibleTransmittance="21.004", PrismX="0.5004", PrismY="0.2504")
+        left["VisibleTransmittance"] = "6"
+        for name, displayed in (("Tint_Imbalance", "15.00"),
+                                ("Prism_Imbalance_H", "0.500"),
+                                ("Prism_Imbalance_V", "0.250")):
+            with self.subTest(measurement=name):
+                row = self.rows()[name]
+                self.assertEqual(row["Value"], displayed)
+                self.assertEqual(row["ErrorCode"], "NG")
+        for value, colors in ((5.999, ("y", "g")), (7.999, ("r",))):
+            for eye in (right, left):
+                eye["spectrum"] = dict.fromkeys(converter.WAVELENGTHS, value)
+            rows = self.rows()
+            for eye in ("R", "L"):
+                for color in colors:
+                    self.assertEqual(rows[f"{eye}_tau_sig_{color}"]["ErrorCode"], "NG")
+
+    def test_signal_exact_threshold_is_not_rejected_by_float_noise(self):
+        for value, colors in ((6.0, ("y", "g")), (8.0, ("r",))):
+            for eye in self.xml["eyes"].values():
+                eye["spectrum"] = dict.fromkeys(converter.WAVELENGTHS, value)
+            rows = self.rows()
+            for eye in ("R", "L"):
+                for color in colors:
+                    self.assertEqual(rows[f"{eye}_tau_sig_{color}"]["ErrorCode"], "0")
+
+    def test_uva_uses_unrounded_limit(self):
+        for eye in self.xml["eyes"].values():
+            eye.update(VisibleTransmittance="12.006", UVTransmittance="6.004")
+        for eye in ("R", "L"):
+            row = self.rows()[f"{eye}_UVA_Mean"]
+            self.assertEqual(row["UpperLimit"], "6.00")
+            self.assertEqual(row["ErrorCode"], "NG")
 
 
 class PairWatcherTests(unittest.TestCase):
@@ -354,6 +422,64 @@ class BatFlowTests(unittest.TestCase):
         xml.write_text(measurement_xml(sn, fail, visible), encoding="utf-8")
         pdf.write_bytes(PDF_BYTES)
         return xml, pdf
+
+    def test_tint_imbalance_is_absolute_transmittance_difference(self):
+        cases = [
+            ("12", "10", "2.00", "0"),
+            ("10", "12", "2.00", "0"),
+            ("0", "0", "0.00", "0"),
+            ("20", "5", "15.00", "0"),
+            ("21", "5", "16.00", "NG"),
+            (None, "10", "", "0"),
+            ("12", None, "", "0"),
+        ]
+        for right, left, expected_value, expected_code in cases:
+            with self.subTest(right=right, left=left):
+                xml, _ = self.write_pair(sn="SBA671F0006U", visible=12)
+                tree = ET.parse(xml)
+                for eye, value in (("R", right), ("L", left)):
+                    tree.find(f"./Measure/LM/{eye}/VisibleTransmittance").text = value
+                tree.write(xml, encoding="utf-8", xml_declaration=True)
+                result = subprocess.run(
+                    ["python", "solos_xml_to_pcbafct.py", str(xml),
+                     "-o", "tint.csv", "--with-note"],
+                    cwd=self.root, capture_output=True, encoding="utf-8",
+                    errors="replace", timeout=15,
+                )
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                with (self.root / "tint.csv").open(
+                    encoding="utf-8-sig", newline="",
+                ) as handle:
+                    row = next(row for row in csv.DictReader(handle)
+                               if row["MeasurementName"] == "Tint_Imbalance")
+                self.assertEqual(row["Value"], expected_value)
+                self.assertEqual(row["ErrorCode"], expected_code)
+                self.assertEqual(row["UpperLimit"], "15")
+                self.assertEqual(row["Units"], "%")
+
+    def test_signal_transmittance_uses_photopic_weights(self):
+        xml, _ = self.write_pair(sn="SBA671F0006U", visible=0)
+        tree = ET.parse(xml)
+        for eye, wavelength in (("R", "580"), ("L", "630")):
+            for point in tree.findall(f"./Measure/LM/{eye}/TransmittanceData/TransmittanceValue"):
+                if point.findtext("WaveLength") == wavelength:
+                    point.find("Transmittance").text = "100"
+        tree.write(xml, encoding="utf-8", xml_declaration=True)
+        result = subprocess.run(
+            ["python", "solos_xml_to_pcbafct.py", str(xml), "-o", "signal.csv"],
+            cwd=self.root, capture_output=True, encoding="utf-8",
+            errors="replace", timeout=15,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        with (self.root / "signal.csv").open(encoding="utf-8-sig", newline="") as handle:
+            rows = {row["MeasurementName"]: row for row in csv.DictReader(handle)}
+        expected = {
+            "R_tau_sig_r": "0.0", "R_tau_sig_y": "12.3", "R_tau_sig_g": "4.3",
+            "L_tau_sig_r": "26.1", "L_tau_sig_y": "5.1", "L_tau_sig_g": "0.1",
+        }
+        for name, value in expected.items():
+            with self.subTest(measurement=name):
+                self.assertEqual(rows[name]["Value"], value)
 
     def test_sunlens_sn_automatically_uses_d15_from_xml_id(self):
         xml, pdf = self.write_pair(sn="SAA671F0001M", visible=20)
